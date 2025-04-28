@@ -59,6 +59,11 @@ const SendBulk = () => {
         }),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to send emails: ${response.status} - ${errorText}`);
+      }
+
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || 'Failed to send emails');
