@@ -23,14 +23,13 @@ const VerifyToken = () => {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/verify`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
           'x-auth-token': token
-        },
-        mode: 'cors'
+        }
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.text();
+        throw new Error(errorData || `HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
@@ -44,9 +43,7 @@ const VerifyToken = () => {
       }
     } catch (error) {
       console.error('Verification error:', error);
-      setMessage(error.message === 'Failed to fetch' 
-        ? 'Unable to connect to server. Please try again.' 
-        : error.message || 'Token verification failed');
+      setMessage('Server connection failed. Please try again later.');
     } finally {
       setIsVerifying(false);
     }
