@@ -70,13 +70,20 @@ const SendBulk = () => {
       }
       
       setStatus(data.success ? `Emails sent successfully to ${recipients.length} recipients!` : 'Failed to send emails');
-      setFormData("");
+      
+      // Clear the form data only on successful submission
+      if (data.success) {
+        setFormData({
+          recipients: '',
+          subject: '',
+          body: ''
+        });
+      }
     } catch (error) {
       setStatus('Error sending emails');
       console.error('Error:', error);
     } finally {
       setLoading(false);
-      setFormData("");
     }
   };
 
