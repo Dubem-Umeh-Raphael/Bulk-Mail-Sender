@@ -70,11 +70,13 @@ const SendBulk = () => {
       }
       
       setStatus(data.success ? `Emails sent successfully to ${recipients.length} recipients!` : 'Failed to send emails');
+      setFormData("");
     } catch (error) {
       setStatus('Error sending emails');
       console.error('Error:', error);
     } finally {
       setLoading(false);
+      setFormData("");
     }
   };
 
