@@ -20,8 +20,8 @@ const VerifyToken = () => {
       setIsVerifying(true);
       setMessage('Verifying token...');
       
-      // const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/verify`, {
-      const response = await fetch(`http://localhost:5000/api/verify`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/verify`, {
+      // const response = await fetch(`http://localhost:5000/api/verify`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

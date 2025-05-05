@@ -108,7 +108,7 @@ const SendBulk = () => {
       setLoading(false);
       setIsSendingMail(false); // Stop sending animation
     }
-    setIsSendingMail(true); // remove later 
+    // setIsSendingMail(true); // remove later 
   };
 
   const handleLogOut = () => {
