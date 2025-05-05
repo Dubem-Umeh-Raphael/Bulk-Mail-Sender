@@ -8,9 +8,12 @@ import {
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './ProtectedRoute';
 import LoadToSIte from './animations/LoadToSIte';
+// import App from '../../charles-wedding-2025/src/App';
 
 const VerifyPage = lazy(() => import('./components/Token/VerifyToken'));
 const MailPage = lazy(() => import('./components/Mail/SendBulk'));
+const HomePage = lazy(() => import('./components/Home/Hero'));
+const NotFoundPage = lazy(() => import('./pages/PageNotFound'));
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -27,6 +30,12 @@ const App = () => {
       <Route>
         <Route index element={
           <Suspense fallback={<LoadToSIte loadText='Loading...' />}>
+            <HomePage />
+          </Suspense>
+        } />
+
+        <Route path='/verify' element={
+          <Suspense fallback={<LoadToSIte loadText='Loading...' />}>
             <VerifyPage />
           </Suspense>
         } />
@@ -36,6 +45,12 @@ const App = () => {
             <ProtectedRoute>
               <MailPage />
             </ProtectedRoute>
+          </Suspense>
+        } />
+
+        <Route path='*' element={
+          <Suspense fallback={<LoadToSIte loadText='Loading to mail...' />}>
+            <NotFoundPage />
           </Suspense>
         } />
       </Route>

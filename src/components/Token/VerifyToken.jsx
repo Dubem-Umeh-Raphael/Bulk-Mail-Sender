@@ -20,7 +20,8 @@ const VerifyToken = () => {
       setIsVerifying(true);
       setMessage('Verifying token...');
       
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/verify`, {
+      // const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/verify`, {
+      const response = await fetch(`http://localhost:5000/api/verify`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -55,7 +56,7 @@ const VerifyToken = () => {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-y-auto px-4 bg-[#e2d8d8]"> {/* Modified container */}
+    <div className="min-h-screen w-full overflow-y-auto px-4 bg-gradient-to-br from-orange-300 to-blue-300"> {/* Modified container */}
       <div className="container mx-auto py-[146px] h-full">
         <div className="flex justify-center items-center w-full">
           <div className="w-full max-w-lg">
@@ -82,8 +83,8 @@ const VerifyToken = () => {
                   type="button"
                   disabled={isVerifying}
                   className={`w-full cursor-pointer mx-auto px-6 py-5 mb-5 text-sm font-bold leading-none text-white transition duration-300 rounded-2xl 
-                    ${isVerifying ? 'bg-purple-400 cursor-not-allowed' : 'bg-purple-500 hover:bg-purple-600'} 
-                    focus:ring-4 focus:ring-purple-300`}>
+                    ${isVerifying ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-500 hover:bg-indigo-600'} 
+                    focus:ring-4 focus:ring-indigo-300`}>
                   <span>{isVerifying ? 'Verifying...' : 'Continue'}</span>
                 </button>
                 
