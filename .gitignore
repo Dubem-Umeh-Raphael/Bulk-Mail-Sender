@@ -31,7 +31,8 @@ bash.exe.stackdump
 # environment variables
 .env
 
-# Ignore Backend folder
+# Ignore Backend and Database folder
 Backend/
+Database/
 
 # Ignore Database folder
