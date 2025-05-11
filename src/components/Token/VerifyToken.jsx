@@ -64,7 +64,7 @@ const VerifyToken = () => {
 
   return (
     <div className="min-h-screen w-full overflow-y-auto px-4 bg-gradient-to-br from-orange-300 to-blue-300"> {/* Modified container */}
-      <div className="container mx-auto py-[146px] h-full" style={isLoading ? { display: 'none' } : { display: 'block' }}>
+      <div className="container mx-auto py-[146px] h-full">
         <div className="flex justify-center items-center w-full">
           <div className="w-full max-w-lg">
             <section id='Token-verification' className="flex flex-col w-full bg-white rounded-3xl p-6">
@@ -82,15 +82,18 @@ const VerifyToken = () => {
                   placeholder='1234567890abcdefghij...' 
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleContinue()}
-                  className="flex items-center w-full px-5 py-4 mr-2 text-base font-medium outline-none focus:bg-gray-400 mb-7 placeholder:text-gray-500 bg-gray-200 text-gray-900 rounded-2xl" />
+                  onKeyDown={(e) => e.key === 'Enter' && !isVerifying && handleContinue()}
+                  disabled={isVerifying}
+                  className={`flex items-center w-full px-5 py-4 mr-2 text-base font-medium outline-none mb-7 placeholder:text-gray-500 rounded-2xl ${
+                    isVerifying ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'focus:bg-gray-400 bg-gray-200 text-gray-900'
+                  }`} />
 
                 <button 
                   onClick={handleContinue}
                   type="button"
                   disabled={isVerifying}
                   className={`w-full cursor-pointer mx-auto px-6 py-5 mb-5 text-sm font-bold leading-none text-white transition duration-300 rounded-2xl 
-                    ${isVerifying ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-500 hover:bg-indigo-600'} 
+                    ${isVerifying ? 'bg-indigo-400 cursor-not-allowed opacity-70' : 'bg-indigo-500 hover:bg-indigo-600'} 
                     focus:ring-4 focus:ring-indigo-300`}>
                   <span>{isVerifying ? 'Verifying...' : 'Continue'}</span>
                 </button>
