@@ -1,36 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, Mail } from 'lucide-react';
+import React from "react";
+import { CheckCircle } from 'lucide-react';
 
-const MailAnimation = ({ isSending, isSent }) => {
-  const [animate, setAnimate] = useState(false);
-
-  useEffect(() => {
-    if (isSending) {
-      setAnimate(true);
-    } else {
-      setAnimate(false);
-    }
-  }, [isSending]);
-
+const MailAnimation = ({ isSent }) => {
   return (
-    <div className="relative w-16 h-16">
+    <div className="w-full h-full flex flex-col items-center justify-center bg-gray-200 z-[60] min-h-screen">
       {isSent ? (
-        <div className="flex flex-col items-center justify-center">
-          <CheckCircle className="text-green-500 w-20 h-20" />
-          <span className="text-sm text-green-600 mt-1">Mail Sent</span>
-        </div>
+        <>
+          <CheckCircle className="text-green-500 w-12 h-12 animate-pulse" />
+          <p className="mt-2 text-gray-900 font-medium text-lg">Mail Sent!</p>
+        </>
       ) : (
-        <Mail
-          className={`absolute top-5 left-5 text-blue-500 transition-all duration-500 ${animate ? 'transform translate-x-0 translate-y-0 opacity-70 scale-90' : 'transform translate-x-0 translate-y-0 opacity-100 scale-100'}`}
-          style={{ zIndex: 2 }}
-          size={40}
-        />
-      )}
-      {!isSent && (
-        <div
-          className={`absolute top-0 left-0 w-20 h-20 rounded-full border-2 border-dashed border-blue-500 animate-spin-slow ${isSending ? '' : 'opacity-0'}`}
-          style={{ zIndex: 1 }}
-        />
+        <>
+          <div className="relative flex items-center justify-center h-16 w-16">
+            <div className="absolute animate-spin rounded-full h-full w-full border-4 border-t-transparent border-purple-500 shadow-lg"></div>
+            <div className="h-8 w-8 bg-purple-500 rounded-full shadow-inner"></div>
+          </div>
+          <p className="mt-2 text-gray-900 font-medium text-lg animate-pulse">Sending Mail...</p>
+        </>
       )}
     </div>
   );

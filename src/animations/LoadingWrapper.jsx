@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import LoadToSIte from '../animations/LoadToSIte';
+import LoadToSIte from './LoadToSIte';
 
 const LoadingWrapper = ({ children, loadText }) => {
   const [isLoading, setIsLoading] = useState(true);

@@ -33,3 +33,5 @@ bash.exe.stackdump
 
 # Ignore Backend folder
 Backend/
+
+# Ignore Database folder

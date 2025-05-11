@@ -41,7 +41,7 @@ const App = () => {
         } />
 
         <Route path='/send-mail' element={
-          <Suspense fallback={<LoadToSIte loadText='Loading to mail...' />}>
+          <Suspense>
             <ProtectedRoute>
               <MailPage />
             </ProtectedRoute>
@@ -57,9 +57,9 @@ const App = () => {
     )
   );
 
-  if (isLoading) {
-    return <LoadToSIte loadText="Loading..." />;
-  }
+  // if (isLoading) {
+  //   return <LoadToSIte loadText="Loading..." />;
+  // }
 
   return (
     <AuthProvider>

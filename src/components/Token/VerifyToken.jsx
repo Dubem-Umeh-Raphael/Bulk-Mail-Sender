@@ -1,11 +1,14 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import LoadToSIte from '../../animations/LoadToSIte';
 
 const VerifyToken = () => {
   const [token, setToken] = useState('');
   const [message, setMessage] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadText, setLoadText] = useState('');
 
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -17,11 +20,13 @@ const VerifyToken = () => {
     }
     
     try {
+      setIsLoading(true);
       setIsVerifying(true);
+      setLoadText('Verifying token...');
       setMessage('Verifying token...');
       
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/verify`, {
-      // const response = await fetch(`http://localhost:5000/api/verify`, {
+      // const response = await fetch('https://localhost:5000/api/verify', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -38,8 +43,9 @@ const VerifyToken = () => {
       
       if (data.success) {
         login(token);
+        setLoadText('Token verified! Redirecting...');
         setMessage('Token verified! Redirecting...');
-        setTimeout(() => navigate('/send-mail'), 1000);
+        navigate('/send-mail'); // Navigate immediately after verification
       } else {
         throw new Error(data.error || 'Invalid token');
       }
@@ -52,12 +58,13 @@ const VerifyToken = () => {
       );
     } finally {
       setIsVerifying(false);
+      setIsLoading(false); // Ensure loader is hidden after verification
     }
   };
 
   return (
     <div className="min-h-screen w-full overflow-y-auto px-4 bg-gradient-to-br from-orange-300 to-blue-300"> {/* Modified container */}
-      <div className="container mx-auto py-[146px] h-full">
+      <div className="container mx-auto py-[146px] h-full" style={isLoading ? { display: 'none' } : { display: 'block' }}>
         <div className="flex justify-center items-center w-full">
           <div className="w-full max-w-lg">
             <section id='Token-verification' className="flex flex-col w-full bg-white rounded-3xl p-6">
@@ -96,6 +103,8 @@ const VerifyToken = () => {
           </div>
         </div>
       </div>
+
+      {isLoading ? <LoadToSIte className='inset-0 fixed' loadText={loadText} /> : null}
     </div>
   )
 }

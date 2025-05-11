@@ -1,21 +1,35 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { Send, Mail, Info, X, LogOut } from 'lucide-react'; // Import the X icon for removal
+import { Send, Mail, Info, X, LogOut, History } from 'lucide-react'; // Import the X icon for removal
 import MailAnimation from '../../animations/MailAnimation';
 import LoadToSIte from '../../animations/LoadToSIte';
+import HistorySidebar from '../History/HistorySideBar';
+import axios from 'axios';
 
 const SendBulk = () => {
   const { isLoggedIn } = useContext(AuthContext);
   const { logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const emailInputRef = useRef(null);
 
   useEffect(() => {
     document.title = 'Send Mail';
     const token = localStorage.getItem('auth_token');
     if (!token || !isLoggedIn) {
-      navigate('/', { replace: true });
+      navigate('/verify', { replace: true });
     }
+
+    axios.get(`https://bulk-mail-db-server.onrender.com/message-history?token=${token}`)
+      .then((res) => {
+        const allMessages = res.data;
+        const uniqueEmails = [...new Set(allMessages.map(msg => msg.email))];
+        setEmailHistory(uniqueEmails);
+        setMessageHistory(allMessages);
+      })
+      .catch((err) => {
+        console.error('Error fetching message history:', err);
+      })
   }, [isLoggedIn, navigate]);
 
   const [emails, setEmails] = useState([]);
@@ -28,20 +42,104 @@ const SendBulk = () => {
   const [isMailSent, setIsMailSent] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  // DB
+  const saveMessageToDB = async (email, subject, body) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      await axios.post('https://bulk-mail-db-server.onrender.com/save-message', {
+      // await axios.post('http://localhost:4000/save-message', {
+        email,
+        subject,
+        body,
+        token,
+      });
+    } catch (error) {
+      console.error('Error saving message to DB:', error);
+    }
+  };
+  // End of DB
+
+  // History SIde Bar
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [emailHistory, setEmailHistory] = useState([]);
+  const [messageHistory, setMessageHistory] = useState([]);
+
+  const toggleHistorySidebar = () => {
+    setIsHistoryOpen(!isHistoryOpen);
+  };
+
+  const handleEmailSelectFromHistory = (selectedEmails) => {
+    // setEmails(prevEmails => [...prevEmails, selectedEmails]);
+    setEmails(prevEmails => {
+      const updatedEmails = [...prevEmails];
+      selectedEmails.forEach(email => {
+        if (!updatedEmails.includes(email)) { // Prevent duplicate again
+          updatedEmails.push(email);
+        }
+      });
+      return updatedEmails;
+    })
+  };
+
+  const handleMessageSelectFromHistory = (message) => {
+    setSubject(message.subject);
+    setBody(message.body);
+  };
+// End of History SideBar
+
   const handleInputChange = (e) => {
     setCurrentInput(e.target.value);
   };
 
+  // Keep the focus on the input after an adding an email on desktop
   const handleKeyDown = (e) => {
     if (e.key === ' ' && currentInput.trim()) {
       const newEmail = currentInput.trim();
-      setEmails([...emails, newEmail]);
+      if (newEmail && !emails.includes(newEmail)) {
+        setEmails(prevEmails => [...prevEmails, newEmail]);
+      }
       setCurrentInput('');
+      if (emailInputRef.current) {
+        emailInputRef.current.focus();
+      }
+      e.preventDefault();
+    setCurrentInput('');
     }
   };
 
   const handleRemoveEmail = (index) => {
     setEmails(emails.filter((_, i) => i !== index));
+  };
+
+  // Handle Pasting into the input field
+  const handlePaste = (e) => {
+    e.preventDefault();
+    
+    const pastedText = e.clipboardData.getData('text');
+    const newEmails = pastedText.split(/\s+/).filter(email => email); // SPlit pasted text by any whitespace
+    newEmails.forEach(email => {
+      if (email && !emails.includes(email)) {
+        setEmails(prevEmails => [...prevEmails, email]);
+      }
+    });
+    setCurrentInput(''); // Clear the input after pasting
+  };
+  
+  // Process email on blur (when the input field loses focus)
+  const handleInputBlur = () => {
+    if (currentInput.trim()) {
+      const newEmails = currentInput
+          .trim()
+          .split(/\s+/)
+          .filter(email => email); // Split by any whitespace
+          
+      newEmails.forEach(email => {
+        if (!emails.includes(email)) {
+          setEmails(prevEmails => [...prevEmails, email]);
+        }
+      });
+    }
+    setCurrentInput('');
   };
 
   const handleSubmit = async (e) => {
@@ -52,6 +150,7 @@ const SendBulk = () => {
 
     try {
       const token = localStorage.getItem('auth_token');
+      console.log('Token being sent:', token); // Add this line for debugging
 
       if (!token) {
         setStatus('Token missing. Please verify again.');
@@ -67,12 +166,32 @@ const SendBulk = () => {
         return;
       }
 
+      // // Save message and mail addresses to localStorage
+      // setEmailHistory(prevHistory => {
+      //   const updatedHistory = [...prevHistory, ...emails];
+      //   const uniqueHistory = [...new Set(updatedHistory)];
+
+      //   localStorage.setItem('emailHistory', JSON.stringify(uniqueHistory));
+      //   return uniqueHistory;
+      // });
+
+      // setMessageHistory(prevHistory => {
+      //   const newMessage = { subject, body, timestamp: new Date().toISOString() };
+      //   const updatedHistory = [newMessage, ...prevHistory.slice(0, 99999)];
+
+      //   localStorage.setItem('messageHistory', JSON.stringify(updatedHistory));
+      //   return updatedHistory;
+      // });
+      // end of save to localStorage: Remove form this part later
+
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/send-bulk-mail`, {
+      // const response = await fetch(`http://localhost:5000/api/send-bulk-mail`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-auth-token': token
         },
+        mode: 'cors',
         body: JSON.stringify({
           recipients: emails,
           subject: subject,
@@ -96,10 +215,34 @@ const SendBulk = () => {
         setSubject('');
         setBody('');
         setIsMailSent(true); // Show 'Mail Sent'
+
+        // Save each recipient's message to the database
+        for (const email of emails) {
+          await saveMessageToDB(email, subject, body);
+        };
+
         setTimeout(() => {
           setIsMailSent(false); // Reset after a delay
           setStatus('');
-        }, 1500);
+        }, 500);
+
+        // Save message and mail addresses to localStorage
+        // setEmailHistory(prevHistory => {
+        //   const updatedHistory = [...prevHistory, ...emails];
+        //   const uniqueHistory = [...new Set(updatedHistory)];
+        //   localStorage.setItem(`emailHistory_${token}`, JSON.stringify(uniqueHistory));
+        //   return uniqueHistory;
+        // });
+
+        // setMessageHistory(prevHistory => {
+        //   const newMessage = { subject, body, timestamp: new Date().toISOString() };
+        //   const updatedHistory = [newMessage, ...prevHistory.slice(0, 99999)];
+
+        //   localStorage.setItem(`messageHistory_${token}`, JSON.stringify(updatedHistory));
+        //   return updatedHistory;
+        // });
+
+        // End of saving message and mail addresses to localStorage
       }
     } catch (error) {
       setStatus('Error sending emails');
@@ -122,11 +265,23 @@ const SendBulk = () => {
 
   return (
     <section className='w-full h-full min-h-screen bg-gradient-to-br from-orange-300 to-blue-300'>
-      <div className='flex items-center justify-end pt-5 px-5'>
-        <button onClick={handleLogOut} className='flex flex-row items-center justify-between space-x-2 font-semibold cursor-pointer px-3 py-2 rounded-lg bg-gradient-to-br from-orange-500 to-blue-500 hover:bg-gradient-to-br hover:from-orange-600 hover:to-blue-600 transition duration-300 ease-in-out shadow-2xl shadow-gray-700 text-gray-50'>
-          <LogOut size={25} />
-          <p className='text-lg'>Log out</p>
-        </button>
+      <div id="history" className='flex flex-row items-center justify-between'>
+        <div className='flex items-center justify-start pt-5 px-5'>
+          <button 
+            className='flex flex-row items-center justify-between space-x-2 font-semibold cursor-pointer px-3 py-2 rounded-lg bg-gradient-to-br from-orange-500 to-blue-500 hover:bg-gradient-to-br hover:from-orange-600 hover:to-blue-600 transition duration-300 ease-in-out shadow-md shadow-gray-700 text-gray-50'
+            onClick={toggleHistorySidebar}
+            >
+            <History size={20} />
+            <span className='text-base md:text-lg'>History</span>
+          </button>
+        </div>
+
+        <div className='flex items-center justify-end pt-5 px-5'>
+          <button onClick={handleLogOut} className='flex flex-row items-center justify-between space-x-2 font-semibold cursor-pointer px-3 py-2 rounded-lg bg-gradient-to-br from-orange-500 to-blue-500 hover:bg-gradient-to-br hover:from-orange-600 hover:to-blue-600 transition duration-300 ease-in-out shadow-md shadow-gray-700 text-gray-50'>
+            <LogOut size={20} />
+            <span className='text-base md:text-lg'>Log out</span>
+          </button>
+        </div>
       </div>
       {isLoggingOut && (
         <div className='fixed inset-0 w-[100vw] h-[100vh] overflow-y-hidden'>
@@ -140,7 +295,7 @@ const SendBulk = () => {
             <h2 className="text-2xl font-extrabold text-gray-900 hero-name tracking-wide -mb-2">Bulk Email Sender</h2>
           </div>
           <div className="bg-blue-100 p-4 rounded-lg mb-6 flex items-start gap-3">
-            <Info className="text-blue-700 flex-shrink-0 mt-7 md:mt-4" size={18} />
+            <Info className="text-blue-700 flex-shrink-0 mt-5 md:mt-4" size={18} />
             <p className="text-sm md:text-base font-medium text-blue-900">
               Enter multiple email addresses. Press space after each email. Make sure all recipients have consented to receive emails.
             </p>
@@ -148,7 +303,7 @@ const SendBulk = () => {
       
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2" htmlFor="email-recipients">
                 Recipients
               </label>
               <div className="flex flex-wrap gap-2 mb-2">
@@ -161,7 +316,7 @@ const SendBulk = () => {
                     <button
                       type="button"
                       onClick={() => handleRemoveEmail(index)}
-                      className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                      className="text-gray-500 hover:text-gray-700 focus:outline-none cursor-pointer"
                     >
                       <X size={14} />
                     </button>
@@ -169,21 +324,28 @@ const SendBulk = () => {
                 ))}
                 <input
                   type="text"
+                  id='email-recipients'
+                  name="recipients"
+                  autoComplete="off"
+                  ref={emailInputRef}
                   value={currentInput}
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
+                  onBlur={handleInputBlur}
+                  onPaste={handlePaste}
                   className="flex-grow p-3 border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all placeholder-gray-500 text-base"
                   placeholder="Enter email and press space"
                 />
               </div>
-              <p className="mt-1 text-xs font-medium text-gray-600">Enter emails and press space</p>
+              <p className="mt-1 text-base font-medium text-blue-600">Enter emails and press space</p>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2" htmlFor="email-subject">
                 Subject Line
               </label>
               <input
                 type="text"
+                id='email-subject'
                 name="subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
@@ -193,11 +355,12 @@ const SendBulk = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-2">
+              <label className="block text-sm font-semibold text-gray-800 mb-2" htmlFor="email-body">
                 Email Content
               </label>
               <textarea
                 name="body"
+                id='email-body'
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 className="w-full p-3 border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all placeholder-gray-500"
@@ -211,7 +374,11 @@ const SendBulk = () => {
                 type="submit"
                 disabled={loading || emails.length === 0 || isSendingMail} // Disable while sending
                 className={`w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 px-6 rounded-md font-medium
-                  ${loading || emails.length === 0 || isSendingMail ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700 active:bg-blue-800'}
+                  ${
+                    loading || emails.length === 0 || isSendingMail
+                      ? 'opacity-70 cursor-not-allowed'
+                      : 'cursor-pointer hover:bg-blue-700 active:bg-blue-800'
+                  }
                   transition-all shadow-md`}
               >
                 {loading || isSendingMail ? (
@@ -243,10 +410,22 @@ const SendBulk = () => {
         </div>
       </div>
       {isSendingMail && (
-          <div className="z-50 fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
+          <div className="z-50 fixed top-0 left-0 w-full h-full bg-transparent">
             <MailAnimation isSending={isSendingMail} isSent={isMailSent} />
           </div>
         )}
+
+        {/* History Sidebar */}
+        <HistorySidebar
+        isOpen={isHistoryOpen}
+        onClose={toggleHistorySidebar}
+        emailHistory={emailHistory}
+        messageHistory={messageHistory}
+        onEmailSelect={handleEmailSelectFromHistory}
+        onMessageSelect={handleMessageSelectFromHistory}
+        setEmailHistory={setEmailHistory} // add this
+        setMessageHistory={setMessageHistory} // add this
+        />
     </section>
   );
 };

@@ -23,7 +23,6 @@
   font-family: 'font_1';
 }
 
-
 @keyframes spin-slow {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -31,4 +30,13 @@
 
 .animate-spin-slow {
   animation: spin-slow 2s linear infinite;
+}
+
+.truncate-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Number of lines to show */
+  line-clamp: 2; 
+  -webkit-box-orient: vertical;
 }
