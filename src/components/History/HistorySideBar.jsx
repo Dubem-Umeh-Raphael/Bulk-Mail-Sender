@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import axios from "axios";
+import { AuthContext } from "../../context/AuthContext";
 
 const sidebarVariants = {
   open: { x: 0 },
   closed: { x: '-100%' },
 };
 
-const HistorySidebar = ({ isOpen, onClose, emailHistory, messageHistory, onEmailSelect, onMessageSelect, setEmailHistory, setMessageHistory }) => {
+const HistorySidebar = ({ isOpen, onClose, onEmailSelect, onMessageSelect }) => {
   const [selectedEmails, setSelectedEmails] = useState({});
+  const { emailHistory, messageHistory, refreshHistory } = useContext(AuthContext);
 
   const handleApplySelectedEmails = () => {
     const emailsToApply = Object.keys(selectedEmails);
@@ -27,13 +28,9 @@ const HistorySidebar = ({ isOpen, onClose, emailHistory, messageHistory, onEmail
   const clearHistory = async () => {
     try {
       await axios.delete('https://bulk-mail-db-server.onrender.com/message-history');
-      // await axios.delete('http://localhost:4000/message-history');// https://bulk-mail-db-server.onrender.com
-      setEmailHistory([]);
-      setMessageHistory([]);
-      console.log('clearing history!');
+      await refreshHistory(); // Refresh after clearing
     } catch (err) {
       console.error('Failed to clear history:', err);
-      console.log('clearing history error!', err);
     }
   };
   

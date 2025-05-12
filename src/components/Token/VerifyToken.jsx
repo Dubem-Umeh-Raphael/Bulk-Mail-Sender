@@ -45,7 +45,11 @@ const VerifyToken = () => {
         login(token);
         setLoadText('Token verified! Redirecting...');
         setMessage('Token verified! Redirecting...');
-        navigate('/send-mail'); // Navigate immediately after verification
+        
+        // Restore intended route or default to /send-mail
+        const intendedRoute = sessionStorage.getItem('intended_route') || '/send-mail';
+        sessionStorage.removeItem('intended_route'); // Clean up
+        navigate(intendedRoute, { replace: true });
       } else {
         throw new Error(data.error || 'Invalid token');
       }

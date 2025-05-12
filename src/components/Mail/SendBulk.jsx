@@ -8,8 +8,7 @@ import HistorySidebar from '../History/HistorySideBar';
 import axios from 'axios';
 
 const SendBulk = () => {
-  const { isLoggedIn } = useContext(AuthContext);
-  const { logout } = useContext(AuthContext);
+  const { isLoggedIn, logout, emailHistory, setEmailHistory, messageHistory, setMessageHistory, refreshHistory } = useContext(AuthContext);
   const navigate = useNavigate();
   const emailInputRef = useRef(null);
 
@@ -19,18 +18,8 @@ const SendBulk = () => {
     if (!token || !isLoggedIn) {
       navigate('/verify', { replace: true });
     }
-
-    axios.get(`https://bulk-mail-db-server.onrender.com/message-history?token=${token}`)
-      .then((res) => {
-        const allMessages = res.data;
-        const uniqueEmails = [...new Set(allMessages.map(msg => msg.email))];
-        setEmailHistory(uniqueEmails);
-        setMessageHistory(allMessages);
-      })
-      .catch((err) => {
-        console.error('Error fetching message history:', err);
-      })
-  }, [isLoggedIn, navigate]);
+    refreshHistory();
+  }, [isLoggedIn, navigate, refreshHistory]);
 
   const [emails, setEmails] = useState([]);
   const [currentInput, setCurrentInput] = useState('');
@@ -61,8 +50,6 @@ const SendBulk = () => {
 
   // History SIde Bar
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [emailHistory, setEmailHistory] = useState([]);
-  const [messageHistory, setMessageHistory] = useState([]);
 
   const toggleHistorySidebar = () => {
     setIsHistoryOpen(!isHistoryOpen);
@@ -87,23 +74,44 @@ const SendBulk = () => {
   };
 // End of History SideBar
 
+  // Modified input handling functions
   const handleInputChange = (e) => {
-    setCurrentInput(e.target.value);
+    const value = e.target.value;
+    // Check if the last character is a space
+    if (value.endsWith(' ')) {
+      const newEmail = value.trim();
+      if (newEmail && !emails.includes(newEmail)) {
+        setEmails(prevEmails => [...prevEmails, newEmail]);
+        setCurrentInput(''); // Clear input after adding email
+      }
+    } else {
+      setCurrentInput(value);
+    }
   };
 
-  // Keep the focus on the input after an adding an email on desktop
   const handleKeyDown = (e) => {
-    if (e.key === ' ' && currentInput.trim()) {
+    if (e.key === ' ' || e.key === 'Spacebar') {
+      e.preventDefault(); // Prevent space from being added to input
       const newEmail = currentInput.trim();
       if (newEmail && !emails.includes(newEmail)) {
         setEmails(prevEmails => [...prevEmails, newEmail]);
+        setCurrentInput('');
       }
-      setCurrentInput('');
       if (emailInputRef.current) {
         emailInputRef.current.focus();
       }
-      e.preventDefault();
-    setCurrentInput('');
+    }
+  };
+
+  // Add touch event handlers for mobile
+  const handleTouchEnd = (e) => {
+    const value = e.target.value;
+    if (value.endsWith(' ')) {
+      const newEmail = value.trim();
+      if (newEmail && !emails.includes(newEmail)) {
+        setEmails(prevEmails => [...prevEmails, newEmail]);
+        setCurrentInput('');
+      }
     }
   };
 
@@ -219,7 +227,8 @@ const SendBulk = () => {
         // Save each recipient's message to the database
         for (const email of emails) {
           await saveMessageToDB(email, subject, body);
-        };
+        }
+        await refreshHistory(); // Refresh history after saving
 
         setTimeout(() => {
           setIsMailSent(false); // Reset after a delay
@@ -326,11 +335,12 @@ const SendBulk = () => {
                   type="text"
                   id='email-recipients'
                   name="recipients"
-                  autoComplete="off"
+                  autoComplete="on"
                   ref={emailInputRef}
                   value={currentInput}
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
+                  onTouchEnd={handleTouchEnd}
                   onBlur={handleInputBlur}
                   onPaste={handlePaste}
                   className="flex-grow p-3 border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all placeholder-gray-500 text-base"
