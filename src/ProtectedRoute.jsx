@@ -14,22 +14,20 @@ const ProtectedRoute = ({ children }) => {
       try {
         const token = localStorage.getItem('auth_token');
         if (!token) {
-          // Store the attempted route
-          sessionStorage.setItem('intended_route', location.pathname);
-          navigate('/', { replace: true });
+          // Save current location before redirect
+          sessionStorage.setItem('redirect_after_login', location.pathname);
+          navigate('/verify', { replace: true });
           return;
         }
 
         const isValid = await validateToken();
         if (!isValid) {
-          sessionStorage.setItem('intended_route', location.pathname);
-          navigate('/', { replace: true });
+          sessionStorage.setItem('redirect_after_login', location.pathname);
+          navigate('/verify', { replace: true });
         }
+        setIsValidating(false);
       } catch (error) {
         console.error('Auth check failed:', error);
-        sessionStorage.setItem('intended_route', location.pathname);
-        navigate('/', { replace: true });
-      } finally {
         setIsValidating(false);
       }
     };
@@ -38,10 +36,14 @@ const ProtectedRoute = ({ children }) => {
   }, [navigate, location, validateToken]);
 
   if (isValidating) {
-    return <LoadToSIte loadText="Verifying your session..." />;
+    return <LoadToSIte loadText="Validating session..." />;
   }
 
-  return isLoggedIn ? children : <Navigate to="/" replace />;
+  if (!isLoggedIn) {
+    return <Navigate to="/verify" state={{ from: location.pathname }} replace />;
+  }
+
+  return children;
 };
 
 export default ProtectedRoute;

@@ -41,7 +41,7 @@ const App = () => {
         } />
 
         <Route path='/send-mail' element={
-          <Suspense>
+          <Suspense fallback={<LoadToSIte loadText='Checking authentication...' />}>
             <ProtectedRoute>
               <MailPage />
             </ProtectedRoute>
@@ -58,7 +58,7 @@ const App = () => {
     ),
     {
       // Add basename for production
-      basename: import.meta.env.BASE_URL,
+      basename: '/',
       // Add custom 404 handling
       errorElement: <NotFoundPage />,
     }

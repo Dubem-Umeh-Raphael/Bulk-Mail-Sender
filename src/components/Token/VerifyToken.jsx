@@ -46,10 +46,10 @@ const VerifyToken = () => {
         setLoadText('Token verified! Redirecting...');
         setMessage('Token verified! Redirecting...');
         
-        // Restore intended route or default to /send-mail
-        const intendedRoute = sessionStorage.getItem('intended_route') || '/send-mail';
-        sessionStorage.removeItem('intended_route'); // Clean up
-        navigate(intendedRoute, { replace: true });
+        // Get saved redirect path or default to /send-mail
+        const redirectPath = sessionStorage.getItem('redirect_after_login') || '/send-mail';
+        sessionStorage.removeItem('redirect_after_login'); // Clean up
+        navigate(redirectPath, { replace: true });
       } else {
         throw new Error(data.error || 'Invalid token');
       }
