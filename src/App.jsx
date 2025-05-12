@@ -48,18 +48,21 @@ const App = () => {
           </Suspense>
         } />
 
+        {/* Catch all unmatched routes */}
         <Route path='*' element={
-          <Suspense fallback={<LoadToSIte loadText='Loading to mail...' />}>
+          <Suspense fallback={<LoadToSIte loadText='404 - Page Not Found' />}>
             <NotFoundPage />
           </Suspense>
         } />
       </Route>
-    )
+    ),
+    {
+      // Add basename for production
+      basename: import.meta.env.BASE_URL,
+      // Add custom 404 handling
+      errorElement: <NotFoundPage />,
+    }
   );
-
-  // if (isLoading) {
-  //   return <LoadToSIte loadText="Loading..." />;
-  // }
 
   return (
     <AuthProvider>
