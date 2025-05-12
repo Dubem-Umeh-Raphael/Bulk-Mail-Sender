@@ -38,7 +38,7 @@ const Hero = () => {
               Powered by cutting-edge technology for seamless email delivery.
             </p>
             <p className="mt-2 font-mono text-base md:text-lg font-semibold">
-              ©2025 <Link to='https://x.com/@dubem_umeh' className='underline underline-offset-2 text-indigo-800 font-medium'>LuckyTwins Code</Link>. All rights reserved.
+              ©2025 <Link to='https://x.com/@dubem_umeh' target='_blank' className='underline underline-offset-2 text-indigo-800 font-medium'>LuckyTwins Code</Link>. All rights reserved.
             </p>
           </div>
         </div>
