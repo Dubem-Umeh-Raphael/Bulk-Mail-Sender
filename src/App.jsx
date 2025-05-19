@@ -18,7 +18,7 @@ const HomePage = lazy(() => import('./components/Home/Hero'));
 const NotFoundPage = lazy(() => import('./pages/PageNotFound'));
 // const AddSmtpPage = lazy(() => import('./components/Smtp/AddSmtp'));
 const DashBoardPage = lazy(() => import('./pages/DashBoard'));
-const DemoPage = lazy(() => import('./components/Mail/Demomail'));
+const DemoPage = lazy(() => import('./components/Mail/DemoMail'));
 const AllSmtpPage = lazy(() => import('./components/Smtp/AllSmtp'));
 const AdminPage = lazy(() => import('./components/Smtp/AdminSmtp'));
 
