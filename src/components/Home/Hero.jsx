@@ -26,7 +26,7 @@ const Hero = () => {
           </div>
           <div className="flex justify-center">
             <Link
-              to="/verify"
+              to="/dash"
               className="bg-indigo-500 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out flex items-center gap-2"
             >
               <Mail size={20} />

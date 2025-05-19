@@ -40,7 +40,8 @@ export const AuthProvider = ({ children }) => {
         return false;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/verify`, {
+      const response = await fetch(`https://bulk-mail-server-qa9a.onrender.com/api/verify`, {
+      // const response = await fetch('http://localhost:5000/api/verify', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

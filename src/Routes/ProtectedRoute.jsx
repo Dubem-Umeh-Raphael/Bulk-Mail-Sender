@@ -1,14 +1,15 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react';
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
-import { AuthContext } from "./context/AuthContext";
-import LoadToSIte from './animations/LoadToSIte';
+import { AuthContext } from "../context/AuthContext";
+import LoadToSIte from '../animations/LoadToSIte';
 
 const ProtectedRoute = ({ children }) => {
   const { isLoggedIn, validateToken } = useContext(AuthContext);
   const [isValidating, setIsValidating] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // Track logout state
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -16,14 +17,14 @@ const ProtectedRoute = ({ children }) => {
         if (!token) {
           // Save current location before redirect
           sessionStorage.setItem('redirect_after_login', location.pathname);
-          navigate('/verify', { replace: true });
+          navigate('/dash', { replace: true });
           return;
         }
 
-        const isValid = await validateToken();
+        const isValid = validateToken();
         if (!isValid) {
           sessionStorage.setItem('redirect_after_login', location.pathname);
-          navigate('/verify', { replace: true });
+          navigate('/dash', { replace: true });
         }
         setIsValidating(false);
       } catch (error) {
@@ -39,8 +40,8 @@ const ProtectedRoute = ({ children }) => {
     return <LoadToSIte loadText="Validating session..." />;
   }
 
-  if (!isLoggedIn) {
-    return <Navigate to="/verify" state={{ from: location.pathname }} replace />;
+  if (!isLoggedIn && !isLoggingOut) {
+    return <Navigate to="/dash" state={{ from: location.pathname }} replace />;
   }
 
   return children;

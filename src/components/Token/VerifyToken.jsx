@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import LoadToSIte from '../../animations/LoadToSIte';
@@ -25,8 +26,8 @@ const VerifyToken = () => {
       setLoadText('Verifying token...');
       setMessage('Verifying token...');
       
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/verify`, {
-      // const response = await fetch('https://localhost:5000/api/verify', {
+      const response = await fetch(`https://bulk-mail-server-qa9a.onrender.com/api/verify`, {
+      // const response = await fetch('http://localhost:5000/api/verify', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -67,7 +68,8 @@ const VerifyToken = () => {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-y-auto px-4 bg-gradient-to-br from-orange-300 to-blue-300"> {/* Modified container */}
+    <div className="min-h-screen w-full overflow-y-auto px-4 bg-gradient-to-br from-orange-300 to-blue-300 relative"> {/* Modified container */}
+    <Link to='/dash' className='p-3 absolute top-3 left-3 bg-red-500 w-fit rounded-xl text-base text-gray-50 hover:bg-red-600 transition duration-200'>Go Back</Link>
       <div className="container mx-auto py-[146px] h-full">
         <div className="flex justify-center items-center w-full">
           <div className="w-full max-w-lg">

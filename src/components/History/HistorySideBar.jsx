@@ -26,11 +26,12 @@ const HistorySidebar = ({ isOpen, onClose, onEmailSelect, onMessageSelect }) => 
   };
 
   const clearHistory = async () => {
+    console.log('clearHistory function triggered');
     try {
-      await axios.delete('https://bulk-mail-db-server.onrender.com/message-history');
-      await refreshHistory(); // Refresh after clearing
+      const response = await axios.delete('https://bulk-mail-db-server.onrender.com/message-history');
+      console.log('clearHistory response:', response.data);
     } catch (err) {
-      console.error('Failed to clear history:', err);
+      console.error('Error in clearHistory:', err);
     }
   };
   
@@ -39,7 +40,7 @@ const HistorySidebar = ({ isOpen, onClose, onEmailSelect, onMessageSelect }) => 
     <section id="history-side-bar">
       <AnimatePresence>
         <motion.div
-          className="fixed top-0 left-0 h-full overflow-y-auto w-full lg:w-[50%] bg-gradient-to-bl from-orange-500 to-blue-500 shadow-lg p-6 z-50"
+          className="fixed top-0 left-0 h-full overflow-y-auto w-full lg:w-[50%] bg-gradient-to-bl from-orange-500 to-blue-500 shadow-lg p-6 z-50 hide-scroll-bar"
           variants={sidebarVariants}
           initial='closed'
           animate={isOpen ? 'open' : 'closed'}
@@ -101,7 +102,7 @@ const HistorySidebar = ({ isOpen, onClose, onEmailSelect, onMessageSelect }) => 
             </div>
 
             {emailHistory.length > 0 ? (
-              <div className="border w-full border-gray-100 rounded-md bg-gray-600/50 h-full p-2 max-h-[250px] overflow-y-auto">
+              <div className="border w-full border-gray-100 rounded-md bg-gray-600/50 h-full p-2 max-h-[250px] overflow-y-auto hide-scroll-bar">
                 {emailHistory.map((email, index) => {
                   return (
                   <div
@@ -140,7 +141,7 @@ const HistorySidebar = ({ isOpen, onClose, onEmailSelect, onMessageSelect }) => 
             </h2>
 
             {messageHistory.length > 0 ? (
-              <div className="border border-gray-100 rounded-md bg-gray-600/50 p-3 h-full max-h-[500px] overflow-y-auto">
+              <div className="border border-gray-100 rounded-md bg-gray-600/50 p-3 h-full max-h-[500px] overflow-y-auto hide-scroll-bar">
 
                 {messageHistory.map((message, index) => (
                   <div
