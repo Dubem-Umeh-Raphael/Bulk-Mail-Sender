@@ -4,9 +4,9 @@ import { Mail } from 'lucide-react';
 
 const Hero = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-300 to-blue-300 py-20 px-5">
+    <div className="min-h-screen bg-gradient-to-br from-orange-300 to-blue-300 py-20 px-5 overflow-y-auto">
       <div className="max-w-4xl mx-auto bg-[#f5e9e9] shadow-2xl shadow-gray-600 rounded-lg overflow-hidden">
-        <div className="bg-indigo-600 py-12 px-8 text-white text-center">
+        <div className="bg-indigo-600 py-7 px-8 text-white text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-4 hero-name tracking-wider">
             Streamline Your Communication
           </h1>

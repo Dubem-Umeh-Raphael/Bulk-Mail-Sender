@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AddSmtp = ({ onClose, onSave, editData, editIndex, showTokenField = true }) => {
   const [host, setHost] = useState('');
@@ -9,18 +11,22 @@ const AddSmtp = ({ onClose, onSave, editData, editIndex, showTokenField = true }
   const [token, setToken] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+  const success = message.includes('successfully');
+  const navigate = useNavigate();
+
   // Remove passKey state
   // const [passKey, setPassKey] = useState('');
 
   // const compact = showTokenField || false;
 
   useEffect(() => {
+    // console.log('Data to edit:', editData)
     if (editData) {
       setHost(editData.host || '');
       setUser(editData.user || '');
       setPass(editData.pass || '');
       setFrom(editData.from || '');
-      setToken(editData.token || '');
+      setToken(editData.token || editData.smtpToken || '');
       // Remove setPassKey(editData.passKey || '');
     } else {
       setHost(''); setUser(''); setPass(''); setFrom(''); setToken('');
@@ -30,51 +36,85 @@ const AddSmtp = ({ onClose, onSave, editData, editIndex, showTokenField = true }
 
   const handleAddSmtp = async () => {
     // Remove passKey check
-    if (!host.trim() || !user.trim() || !pass.trim() || !from.trim() || (showTokenField && !token.trim())) {
+    if (
+      !host.trim() || 
+      !user.trim() || 
+      !pass.trim() || 
+      !from.trim() || 
+      (editIndex === null && showTokenField && !token.trim())
+    ) {
       setMessage('Please fill in all fields.');
+      toast.error('Please fill in all fields.');
       return;
     }
+
+    const passKey = sessionStorage.getItem('admin_passkey') || sessionStorage.getItem('current_passkey');
+
+    if (!passKey) {
+      console.error('No current_passkey found in sessionStorage. Redirecting to verify.');
+      toast.error('No Passkey found. Reverify your token.');
+      navigate('/dash');
+      return;
+    }
+
     setIsSubmitting(true);
     setMessage(editIndex !== null ? 'Updating SMTP credentials...' : 'Adding SMTP credentials...');
     try {
-      const smtp_token = localStorage.getItem('smtp_token');
-      const payload = {
-        smtpToken: token || smtp_token,
-        smtpUser: user,
-        smtpPass: pass,
-        smtpHost: host,
-        smtpFrom: from,
-      };
-      console.log('Payload being sent:', payload);
-      const response = await fetch('https://bulk-mail-db-server.onrender.com/config/save-config', {
-      // const response = await fetch('http://localhost:4000/config/save-config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      await toast.promise(
+        (async () => {
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save SMTP credentials');
-      }
+          // const smtp_token = localStorage.getItem('smtp_token');
+          const payload = {
+            // smtpToken: token || smtp_token,
+            smtpToken: token,
+            smtpUser: user,
+            smtpPass: pass,
+            smtpHost: host,
+            smtpFrom: from,
+            passKey: passKey,
+          };
+          // console.log('Payload being sent:', payload);
+          const response = await fetch('https://bulk-mail-db-server.onrender.com/config/save-config', {
+          // const response = await fetch('http://localhost:4000/config/save-config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
 
-      const responseData = await response.json();
-      console.log('Response from backend:', responseData);
+          if (!response.ok) {
+            const errorData = await response.json();
+            toast.error('Failed to save SMTP credentials.');
+            throw new Error(errorData.error || 'Failed to save SMTP credentials');
+          }
 
-      setMessage(responseData.message || 'SMTP credentials saved successfully!');
-      if (onSave) {
-        onSave({ host, user, pass, from, token }, editIndex);
-      }
+          const responseData = await response.json();
+          // console.log('Response from backend:', responseData);
+
+          setMessage(responseData.message || 'SMTP credentials saved successfully!');
+          // toast.success('SMTP credentials saved successfully!');
+
+
+          if (onSave) {
+            onSave({ host, user, pass, from, token }, editIndex);
+          }
+        })(),
+        {
+          loading: editIndex !== null ? 'Updating SMTP credentials...' : 'Adding SMTP credentials...',
+          success: 'SMTP credentials saved successfully!',
+          error: 'Failed to save SMTP credentials.',
+        }
+      );
     } catch (err) {
       console.error('Error saving SMTP credentials:', err);
       setMessage(err.message || 'Failed to save SMTP credentials.');
+      toast.error('Failed to save SMTP credentials.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className={`w-full h-full overflow-y-auto bg-white rounded-3xl px-6 py-2 shadow-2xl flex flex-col items-center justify-center relative`}>
+    <div className={`w-full h-full overflow-y-auto bg-white rounded-3xl px-6 my-10 shadow-2xl flex flex-col items-center justify-center relative z-50`}>
       {/* <div className={`${ compact ? 'pb-5' : '' }`}> */}
       <div>
         <button
@@ -86,9 +126,9 @@ const AddSmtp = ({ onClose, onSave, editData, editIndex, showTokenField = true }
           <X size={30} />
         </button>
       </div>
-      <div className='w-full h-full mt-5 overflow-y-auto'>
+      <div className='w-full h-full pt-5 overflow-y-auto'>
         <h3 className={`mb-3 text-lg md:text-3xl font-bold text-gray-900 text-center`}>{editIndex !== null ? 'Edit SMTP' : 'Add SMTP'}</h3>
-        <div className="w-full">
+        <div className="w-full h-full overflow-y-auto">
           {showTokenField && (
             <>
               <label htmlFor="token" className={`mb-2 text-lg text-start font-semibold text-gray-900`}>
@@ -101,7 +141,7 @@ const AddSmtp = ({ onClose, onSave, editData, editIndex, showTokenField = true }
                 placeholder="Unique token for this SMTP"
                 value={token}
                 onChange={e => setToken(e.target.value)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || editIndex !== null}
                 className={`flex items-center w-full px-5 py-3 text-base font-medium outline-none mb-3 placeholder:text-gray-500 rounded-2xl ${
                   isSubmitting ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'focus:bg-gray-400 bg-gray-200 text-gray-900'
                 }`}
@@ -181,7 +221,9 @@ const AddSmtp = ({ onClose, onSave, editData, editIndex, showTokenField = true }
             <span>{isSubmitting ? (editIndex !== null ? 'Updating...' : 'Adding...') : (editIndex !== null ? 'Update SMTP' : 'Add SMTP')}</span>
           </button>
           <span>
-            {message && <p className="text-base text-red-600 mx-auto">{message}</p>}
+            {message && (
+              <p className={`text-base mx-auto my-1 ${ success ? 'text-green-600' : 'text-red-600' }`}>{message}</p>
+            )}
           </span>
         </div>
       </div>

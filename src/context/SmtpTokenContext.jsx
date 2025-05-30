@@ -46,17 +46,17 @@ export const SmtpTokenProvider = ({ children }) => {
                 // console.log('📥 Passkey validation response:', data);
 
                 if (response.ok && data.success) {
-                    console.log('✅ Passkey validated successfully');
+                    // console.log('✅ Passkey validated successfully');
                     return isValid = true;
                 }
             }
 
             // Then check admin token
             if (storedAdminToken && storedAdminToken === import.meta.env.VITE_ADMIN_TOKEN) {
-                console.log('✅ Admin token validated successfully');
+                // console.log('✅ Admin token validated successfully');
                 return isValid = true;
             } else {
-                console.log('❌ No valid tokens found');
+                // console.log('❌ No valid tokens found');
                 return isValid = false;
             }
 
@@ -69,7 +69,7 @@ export const SmtpTokenProvider = ({ children }) => {
             sessionStorage.setItem("current_passkey", token);
             setIsLoggedIn(true);
         } else if (token === import.meta.env.VITE_ADMIN_TOKEN) {
-            console.log('💾 Storing admin token');
+            // console.log('💾 Storing admin token');
             // sessionStorage.setItem("admin_smtp_token", token);
             setIsLoggedIn(true);
         } else {
@@ -81,6 +81,8 @@ export const SmtpTokenProvider = ({ children }) => {
     const logoutSmtp = () => {
         sessionStorage.removeItem("admin_smtp_token");
         sessionStorage.removeItem("current_passkey");
+        sessionStorage.removeItem('admin_passkey');
+        sessionStorage.removeItem('redirect_after_passkey');
         setIsLoggedIn(false);
     };
 

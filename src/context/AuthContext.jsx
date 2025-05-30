@@ -63,8 +63,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("auth_token");
       if (!token) return;
+      // console.log(token);
 
-      const response = await axios.get(`https://bulk-mail-db-server.onrender.com/message-history?token=${token}`);
+      const response = await axios.get(`https://bulk-mail-db-server.onrender.com/message/message-history?token=${token}`);
+      // const response = await axios.get(`http://localhost:4000/message/message-history?smtp_token=${token}`);
       const allMessages = response.data;
       const uniqueEmails = [...new Set(allMessages.map(msg => msg.email))];
       setEmailHistory(uniqueEmails);

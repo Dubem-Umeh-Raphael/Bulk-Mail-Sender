@@ -35,4 +35,8 @@ bash.exe.stackdump
 Backend/
 Database/
 
-# Ignore Database folder
+# Ignore unwanted frontend folder
+src/components/LoginForm/
+src/components/SignupForm/
+src/Layout/
+src/components/Smtp/copy.jsx

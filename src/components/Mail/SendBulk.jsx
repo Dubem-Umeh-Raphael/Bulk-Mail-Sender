@@ -6,6 +6,7 @@ import MailAnimation from '../../animations/MailAnimation';
 import LoadToSIte from '../../animations/LoadToSIte';
 import HistorySidebar from '../History/HistorySideBar';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const SendBulk = () => {
   const { isLoggedIn, logout, emailHistory, setEmailHistory, messageHistory, setMessageHistory, refreshHistory } = useContext(AuthContext);
@@ -29,9 +30,9 @@ const SendBulk = () => {
     setTimeout(() => {
       logout();
       navigate('/dash', { replace: true });
-      console.log('logging out')
+      // console.log('logging out')
     }, 2500);
-    console.log('Logged out!');
+    // console.log('Logged out!');
   };
 
   useEffect(() => {
@@ -44,16 +45,17 @@ const SendBulk = () => {
   }, [isLoggedIn, navigate, refreshHistory]);
 
   // DB
-  const saveMessageToDB = async (email, subject, body) => {
+  // let token = localStorage.getItem('auth_token');
+  const saveMessageToDB = async (email, subject, body, smtp_token) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      await axios.post('https://bulk-mail-db-server.onrender.com/save-message', {
-        // await axios.post('http://localhost:4000/save-message', {
+      await axios.post('https://bulk-mail-db-server.onrender.com/message/save-message', {
+        // await axios.post('http://localhost:4000/message/save-message', {
         email,
         subject,
         body,
-        token,
+        smtp_token,
       });
+      // console.log('credentials to save from front: ', { email, subject, body, token })
     } catch (error) {
       console.error('Error saving message to DB:', error);
     }
@@ -79,9 +81,12 @@ const SendBulk = () => {
     });
   };
 
-  const handleMessageSelectFromHistory = (message) => {
-    setSubject(message.subject);
-    setBody(message.body);
+  const handleMessageSelectFromHistory = (messageOrArray) => {
+    const message = Array.isArray(messageOrArray) ? messageOrArray[0] : messageOrArray;
+    if (message) {
+      setSubject(message.subject);
+      setBody(message.body);
+    }
   };
   // End of History SideBar
 
@@ -166,71 +171,92 @@ const SendBulk = () => {
 
     try {
       const token = localStorage.getItem('auth_token');
-      console.log('Token being sent:', token);
+      // console.log('Token being sent:', token);
 
-      if (!token) {
-        setStatus('Token missing. Please verify again.');
-        setLoading(false);
-        setIsSendingMail(false);
-        return;
-      }
+      await toast.promise (
+        (async () => {
+          if (!token) {
+            setStatus('Token missing. Please verify again.');
+            setLoading(false);
+            setIsSendingMail(false);
+            return;
+          }
 
-      if (emails.length === 0) {
-        setStatus('Please enter at least one recipient email.');
-        setLoading(false);
-        setIsSendingMail(false);
-        return;
-      }
+          if (emails.length === 0) {
+            setStatus('Please enter at least one recipient email.');
+            setLoading(false);
+            setIsSendingMail(false);
+            return;
+          }
 
-      // const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/send-bulk-mail`, {
-      const response = await fetch(`http://localhost:5000/api/send-bulk-mail`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token
-        },
-        mode: 'cors',
-        body: JSON.stringify({
-          recipients: emails,
-          subject: subject,
-          body: body
-        }),
-      });
+          // console.log('saving to database')
+          // for (const email of emails) {
+          //    saveMessageToDB(email, subject, body, token);
+          // }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to send emails: ${response.status} - ${errorText}`);
-      }
+          // const response = await fetch(`http://localhost:5000/api/send-bulk-mail`, {
+          const response = await fetch(`https://bulk-mail-server-qa9a.onrender.com/api/send-bulk-mail`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-auth-token': token
+            },
+            mode: 'cors',
+            body: JSON.stringify({
+              recipients: emails,
+              subject: subject,
+              body: body
+            }),
+          });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send emails');
-      }
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to send emails: ${response.status} - ${errorText}`);
+          }
 
-      setStatus(data.success ? `Emails sent successfully to ${emails.length} recipients!` : 'Failed to send emails');
-      if (data.success) {
-        setEmails([]);
-        setSubject('');
-        setBody('');
-        setIsMailSent(true);
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to send emails');
+          }
 
-        // Save each recipient's message to the database
-        for (const email of emails) {
-          await saveMessageToDB(email, subject, body);
+          setTimeout(() => {
+            setStatus(data.success ? `Emails sent successfully to ${emails.length} recipients!` : 'Failed to send emails');
+          }, 1000);
+
+          if (data.success) {
+            setEmails([]);
+            setSubject('');
+            setBody('');
+            setIsMailSent(true);
+
+            // Save each recipient's message to the database
+            for (const email of emails) {
+              await saveMessageToDB(email, subject, body, token);
+            }
+            refreshHistory();
+
+            setTimeout(() => {
+              setIsMailSent(false);
+              setStatus('');
+            }, 500);
+          }
+        })(),
+        {
+          loading: 'Sending emails...',
+          success: `Emails sent to ${emails.length} recipients successfully!`,
+          error: 'Error sending emails',
         }
-        refreshHistory();
-
-        setTimeout(() => {
-          setIsMailSent(false);
-          setStatus('');
-        }, 500);
-      }
+      )
     } catch (error) {
       setStatus('Error sending emails');
+      toast.error('Error sending emails');
       console.error('Error:', error);
     } finally {
       setLoading(false);
       setIsSendingMail(false);
+      setEmails([]);
+      setSubject('');
+      setBody('');
     }
     // setIsSendingMail(true); // remove later
   };
@@ -365,7 +391,7 @@ const SendBulk = () => {
                 )}
               </button>
             </div>
-            {status && (
+            {/* {status && (
               <div className={`mt-4 p-4 rounded-md flex items-center gap-3 ${
                 status.includes('success')
                   ? 'bg-green-100 text-green-800 border-2 border-green-300'
@@ -376,7 +402,7 @@ const SendBulk = () => {
                 </div>
                 <div className="font-medium">{status}</div>
               </div>
-            )}
+            )} */}
           </form>
         </div>
       </div>

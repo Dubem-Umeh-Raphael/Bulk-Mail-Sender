@@ -18,7 +18,7 @@ const SmtpProtectedRoute = ({ children }) => {    const { isLoggedIn, validateSm
                 // Need either a passkey or an admin token, not necessarily both
                 if (!passkey && !adminPass) {
                     // Save current location before redirect
-                    console.log('no passkey provided: ', (passkey, adminPass));
+                    // console.log('no passkey provided: ', (passkey, adminPass));
                     sessionStorage.setItem('redirect_after_passkey', location.pathname);
                     navigate('/dash', { replace: true });
                     return;
@@ -45,7 +45,7 @@ const SmtpProtectedRoute = ({ children }) => {    const { isLoggedIn, validateSm
     }
 
     if (!isLoggedIn && !isLoggingOut) {
-        console.log('Access denied, redirecting to dash');
+        // console.log('Access denied, redirecting to dash');
         return <Navigate to="/dash" state={{ from: location.pathname }} replace />;
     }
 

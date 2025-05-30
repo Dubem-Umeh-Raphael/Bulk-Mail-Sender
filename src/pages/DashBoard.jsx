@@ -1,13 +1,16 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { KeyRound, MailCheck } from 'lucide-react';
+import { KeyRound, MailCheck, X } from 'lucide-react';
 import PopupVerify from '../animations/PopupVerify';
+import PopUp from '../animations/PopUp';
+import VerifyToken from '../components/Token/VerifyToken';
 
-const DashBoard = () => {
+const DashBoard = ({ handleContinue }) => {
   const [showPopup, setShowPopup] = useState(false);
+  const [tokenPopUp, setTokenPopUp] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-300 to-blue-300 flex items-center justify-center px-4 relative">
+    <div className="min-h-screen bg-gradient-to-br from-orange-300 to-blue-300 flex items-center justify-center px-4 relative overflow-y-hidden">
       <Link to='/' className='p-3 mt-2 bg-red-500 hover:bg-red-600 transition duration-200 w-fit rounded-xl text-base text-gray-50 absolute top-3 left-3'>Go Back</Link>
       <div className="max-w-5xl w-full bg-[#fcfafa] rounded-3xl shadow-2xl my-[5rem] p-5 md:p-10">
         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-center hero-name tracking-wide mt-2">
@@ -36,12 +39,12 @@ const DashBoard = () => {
             <p className="text-gray-700 mb-5 text-center">
               Get started quickly with our built-in SMTP service. No setup required.
             </p>
-            <Link
-              to='/verify'
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl transition duration-200 text-center mb-3"
+            <button
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl transition duration-200 text-center mb-3 cursor-pointer"
+              onClick={() => setTokenPopUp(true)}
             >
               Use Built-in SMTP
-            </Link>
+            </button>
           </div>
           {/* Demo */}
           <div className="flex-1 min-w-[260px] max-w-md bg-gradient-to-br from-blue-200 to-orange-100 rounded-2xl p-7 flex flex-col items-center shadow-lg shadow-gray-400 border-2 border-dashed border-indigo-400">
@@ -62,6 +65,18 @@ const DashBoard = () => {
         </div>
       </div>
       <PopupVerify isOpen={showPopup} onClose={() => setShowPopup(false)} />
+      <PopUp isOpen={tokenPopUp} onClose={() => setTokenPopUp(false)} handleContinue={handleContinue}>
+        <section id='token-verify'>
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className='bg-white rounded-3xl shadow-2xl p-8 w-full max-w-[350px] md:max-w-md relative flex flex-col items-center'>
+              <div className='absolute top-5 right-5  bg-gray-400 p-0.5 rounded-full'>
+                <span className='cursor-pointer text-gray-900 hover:text-red-500 font-bold focus:outline-none' onClick={() => setTokenPopUp(false)}><X size={30} /></span>
+              </div>
+              <VerifyToken />
+            </div>
+          </div>
+        </section>
+      </PopUp>
     </div>
   )
 }
