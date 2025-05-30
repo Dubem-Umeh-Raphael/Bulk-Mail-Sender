@@ -5,16 +5,25 @@ import { useNavigate } from 'react-router-dom';
 import { SmtpTokenContext } from '../../context/SmtpTokenContext';
 import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import VerifyToken from '../Token/VerifyToken';
 
-const AllSmtp = () => {
+const AllSmtp = ({ handleContinue }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [smtpList, setSmtpList] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
   const [editData, setEditData] = useState(null);
   const { logoutSmtp } = useContext(SmtpTokenContext);
   const navigate = useNavigate();
+  const [showPopUpVerify, setShowPopupVerify] = useState(false);
+
+  // Ensure verify popup is always closed on mount (prevents unwanted open on refresh)
+  // useEffect(() => {
+  //   setShowPopupVerify(false);
+  // }, []);
 
   useEffect(() => {
+    setShowPopupVerify(false);
+
     const fetchSmtps = async () => {
       const currentPasskey = sessionStorage.getItem('current_passkey');
       if (!currentPasskey) {
@@ -245,9 +254,7 @@ const AllSmtp = () => {
                   </button>
                   <button
                     className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-xl transition duration-200 text-center shadow-md shadow-green-100 text-base cursor-pointer"
-                    onClick={() => {
-                      navigate('/dash');
-                    }}
+                    onClick={() => { setShowPopupVerify(true) }}
                   >
                     Use
                   </button>
@@ -311,6 +318,20 @@ const AllSmtp = () => {
             </div>
           </div>
         </div>
+      </PopUp>
+
+      {/* Verify token PopUp */}
+      <PopUp isOpen={showPopUpVerify} onClose={() => setShowPopupVerify(false)} handleContinue={handleContinue}>
+        <section id='token-verify'>
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className='bg-white rounded-3xl shadow-2xl p-8 w-full max-w-[350px] md:max-w-md relative flex flex-col items-center'>
+              <div className='absolute top-5 right-5  bg-gray-400 p-0.5 rounded-full'>
+                <span className='cursor-pointer text-gray-900 hover:text-red-500 font-bold focus:outline-none' onClick={() => setShowPopupVerify(false)}><X size={30} /></span>
+              </div>
+              <VerifyToken />
+            </div>
+          </div>
+        </section>
       </PopUp>
     </div>
   );
